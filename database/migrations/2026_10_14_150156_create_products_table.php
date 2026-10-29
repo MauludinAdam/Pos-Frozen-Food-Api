@@ -19,8 +19,8 @@ return new class extends Migration
             $table->string('name', 150);
             $table->string('price', 50);
             $table->string('stock');
-            $table->longText('description')->NULL();
-            $table->string('image')->NULL();
+            $table->longText('description')->nullable();
+            $table->string('image')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

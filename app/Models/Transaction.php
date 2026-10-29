@@ -12,7 +12,6 @@ class Transaction extends Model
 {
     protected $fillable = [
         'user_id',
-        'customer_id',
         'subtotal',
         'discount_amount',
         'total_amount',
@@ -22,12 +21,18 @@ class Transaction extends Model
         'notes'
     ];
 
-    public function users()
+    public function scopeSearch($query, $search)
+    {
+        return $query->whereHas('user', function ($query) use ($search) {
+                $query->where('name', 'LIKE', "%{$search}%");
+        });
+    }
+    public function user()
     {
         return $this->belongsTo(User::class);
     }
 
-    public function customers()
+    public function customer()
     {
         return $this->belongsTo(Customer::class);
     }

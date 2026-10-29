@@ -16,12 +16,12 @@ class DetailTransaction extends Model
         'subtotal',
     ];
 
-    public function transactions()
+    public function transaction()
     {
         return $this->belongsTo(Transaction::class);
     }
 
-    public function products()
+    public function product()
     {
         return $this->belongsTo(Product::class);
     }

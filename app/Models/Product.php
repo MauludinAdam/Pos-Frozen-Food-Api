@@ -3,7 +3,10 @@
 namespace App\Models;
 
 use App\Models\Category;
+use App\Models\DetailTransaction;
+use App\Models\PurchaseOrderItem;
 use App\Models\Satuan;
+use App\Models\StockTransactionItem;
 use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
@@ -16,14 +19,20 @@ class Product extends Model
         'price', 
         'stock', 
         'description', 
-        'image'];
+        'image'
+    ];
 
-    public function categories()
+    public function scopeSearch($query, $search)
+    {
+        return $query->where('name', 'LIKE', "%{$search}%")
+            ->orWhere('code', 'LIKE', "%{$search}%");
+    }
+    public function category()
     {
         return $this->belongsTo(Category::class);
     }
 
-    public function satuans()
+    public function satuan()
     {
         return $this->belongsTo(Satuan::class);
     }
@@ -31,5 +40,15 @@ class Product extends Model
     public function detailTransactions()
     {
         return $this->hasMany(DetailTransaction::class);
+    }
+
+    public function stockTransactionItems()
+    {
+        return $this->hasMany(StockTransactionItem::class);
+    }
+
+    public function purchaseOrderItems()
+    {
+        return $this->hasMany(PurchaseOrderItem::class);
     }
 }

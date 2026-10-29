@@ -9,6 +9,10 @@ class Category extends Model
 {
     protected $fillable = ['name', 'description'];
 
+    public function scopeSearch($query, $search)
+    {
+        return $query->where('name', 'Like', "%{$search}%");
+    }
     public function products()
     {
         return $this->hasMany(Product::class);

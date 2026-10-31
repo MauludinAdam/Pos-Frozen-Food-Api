@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\DetailTransaction;
 use App\Models\PurchaseOrderItem;
 use App\Models\Satuan;
+use App\Models\StockOpname;
 use App\Models\StockTransactionItem;
 use Illuminate\Database\Eloquent\Model;
 
@@ -50,5 +51,10 @@ class Product extends Model
     public function purchaseOrderItems()
     {
         return $this->hasMany(PurchaseOrderItem::class);
+    }
+
+    public function stockOpname()
+    {
+        return $this->hasMany(StockOpname::class);
     }
 }

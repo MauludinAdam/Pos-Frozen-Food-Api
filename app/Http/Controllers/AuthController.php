@@ -61,9 +61,30 @@ class AuthController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(RequestUpdateUser $request, string $id)
     {
-        //
+        try {
+            $data = $request->validated();
+
+            $user = $request->user()->load('role');
+
+            if(empty($data['password'])){
+                unset($data['password']);
+            }else{
+                $data['password'] = Hash::make($data['password']);
+            }
+
+            unset(
+                $data['current_password'],
+                $data['password_confirmation']
+            );
+
+            $user->update($data);
+
+            return ResponseHelper::jsonResponse(true, 'Data profile user berhasil diperbarui', new UserResource($user), 200);
+        } catch (\Exception $e) {
+            return ResponseHelper::jsonResponse(false, $e->getMessage(), null, 500);
+        }
     }
 
     /**

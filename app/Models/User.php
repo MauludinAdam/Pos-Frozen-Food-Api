@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\StockOpname;
 use App\Models\StockTransaction;
 use App\Models\Transaction;
 use Database\Factories\UserFactory;
@@ -66,5 +67,10 @@ class User extends Authenticatable
     public function stockTransaction()
     {
         return $this->hasMany(StockTransaction::class);
+    }
+
+    public function stockOpname()
+    {
+        return $this->hasMany(StockOpname::class);
     }
 }

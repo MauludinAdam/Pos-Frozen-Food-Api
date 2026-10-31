@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseHelper;
 use App\Models\PurchaseOrder;
+use App\Models\GoodReceiptItem;
 use App\Http\Resources\PaginateResource;
 use App\Http\Resources\PurchaseOrderResource;
 use App\Http\Requests\PurchaseOrder\RequestStorePurchaseOrder;
 use App\Http\Requests\PurchaseOrder\RequestUpdatePurchaseOrder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class PurchaseOrderController extends Controller
 {
@@ -84,10 +86,10 @@ class PurchaseOrderController extends Controller
                 $shippingCost = $data['shipping_cost'] ?? 0;
 
                 $purchaseOrder = PurchaseOrder::create([
-                    'code'      => $this->generateNumberPurchaseOrder(),
-                    'supplier_id' => $data['supplier_id'],
-                    'user_id'     => auth()->id(),
-                    'order_date'  => $data['order_date'],
+                    'code'          => $this->generateNumberPurchaseOrder(),
+                    'supplier_id'   => $data['supplier_id'],
+                    'user_id'       => auth()->id(),
+                    'order_date'    => $data['order_date'],
                     'expected_date' => $data['expected_date'],
                     'subtotal'      => $subtotal,
                     'shipping_cost' => $shippingCost,
@@ -124,7 +126,11 @@ class PurchaseOrderController extends Controller
     public function show(string $id)
     {
         try {
-            $purchaseOrder = PurchaseOrder::find($id);
+            $purchaseOrder = PurchaseOrder::with([
+                'supplier',
+                'user',
+                'purchaseOrderItems.product',
+            ])->find($id);
 
             if(!$purchaseOrder){
                 return ResponseHelper::jsonResponse(false, 'Data purchase order tidak ditemukan.!', null, 404);
@@ -143,14 +149,89 @@ class PurchaseOrderController extends Controller
     {
         $data = $request->validated();
 
+        $items = $data['items'];
+        unset($data['items']);
+
         try {
-            $purchaseOrder = PurchaseOrder::find($id);
+            $purchaseOrder = DB::transaction(function () use ($data, $items, $id){
+                
+                $purchaseOrder = PurchaseOrder::findOrFail($id);
 
-            if(!$purchaseOrder){
-                return ResponseHelper::jsonResponse(false, 'Data purchase order tidak ditemukan.!', null, 404);
-            }
+                $purchaseOrder->update($data);
 
-            $purchaseOrder->update($data);
+                // Ambil semua item lama
+                $existingItems = $purchaseOrder->purchaseOrderItems()
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('id');
+                    
+                    $updateItemIds = [];
+
+                    foreach($items as $item){
+
+                        // jika memiliki ID, update item lama
+                        if(!empty($item['id'])){
+
+                            $purchaseOrderItem =$existingItems->get($item['id']);
+
+                            if(!$purchaseOrderItem) {
+                                throw \ValidationException::withMessage([
+                                    'items' => 'Item purchase order tidak ditemukan.',
+                                ]);
+                            }
+
+                            $purchaseOrderItem->update([
+                                'product_id'    => $item['product_id'],
+                                'quantity'      => $item['quantity'],
+                                'unit_price'    => $item['unit_price'],
+                                'subtotal'      => $item['quantity'] * $item['unit_price'],
+                            ]);
+
+                            $updateItemIds[] = $purchaseOrderItem->id;
+                        }else{
+                            // Jika tidak memilik id, buat item baru
+                            $newItem = $purchaseOrder->purchaseOrderItems()->create([
+                                'product_id'    => $item['product_id'],
+                                'quantity'      => $item['quantity'],
+                                'unit_price'    => $item['unit_price'],
+                                'subtotal'      => $item['quantity'] * $item['unit_price'],
+                            ]);
+
+                            $updateItemIds[] = $newItem->id;
+                        }
+                    }
+
+                    // Cari item lama yg tidak dikirim lagi
+                    $deleteItemIds = $existingItems->keys()
+                        ->diff($updateItemIds);
+
+                    // Periksa apakah item sudah digunakan goods receipt
+                    if($deleteItemIds->isNotEmpty()){
+
+                        $hasReceipt = GoodReceiptItem::whereIn(
+                            'purchase_order_item_id',
+                            $deleteItemIds
+                        )->exists();
+
+                        if($hasReceipt){
+                            throw ValidationException::withMessages([
+                                'items' => 'Item tidak dapat dihapus karena sudah digunakan oleh penerima barang.',
+                            ]);
+                        }
+
+                        // Hapus item yang sudah tidak digunakan
+                        $purchaseOrder->purchaseOrderItems()
+                            ->whereIn('id', $deleteItemIds)
+                            ->delete();
+                    }
+
+                return $purchaseOrder;
+            });
+
+            $purchaseOrder->load([
+                'supplier',
+                'purchaseOrderItems.product',
+            ]);
 
             return ResponseHelper::jsonResponse(true, 'Data purchase order berhasil diperbarui', new PurchaseOrderResource($purchaseOrder), 200);
         } catch (\Exception $e) {
@@ -164,10 +245,18 @@ class PurchaseOrderController extends Controller
     public function destroy(string $id)
     {
         try {
-            $purchaseOrder = PurchaseOrder::find($id);
+            $purchaseOrder = PurchaseOrder::with('purchaseOrderItems')->find($id);
 
             if(!$purchaseOrder){
                 return ResponseHelper::jsonResponse(false, 'Data purchase order tidak ditemukan.!', null, 404);
+            }
+
+            $purchaseOrderItemIds = $purchaseOrder->purchaseOrderItems->pluck('id');
+
+            $hasGoodReceipt = GoodReceiptItem::whereIn('purchase_order_item_id', $purchaseOrderItemIds)->exists();
+
+            if($hasGoodReceipt){
+                return ResponseHelper::jsonResponse(false, 'Purchase Order tidak dapat dihapus karena sudah memiliki Good Receipt.!', null, 422);
             }
 
             $purchaseOrder->delete();

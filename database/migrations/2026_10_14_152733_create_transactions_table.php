@@ -21,7 +21,7 @@ return new class extends Migration
             $table->string('paid_amount');
             $table->string('change_amount');
             $table->enum('status_payment', ['paid','unpaid','cancelled']);
-            $table->longText('notes')->NULL();
+            $table->longText('notes')->nullable()->change();
             $table->timestamps();
         });
     }

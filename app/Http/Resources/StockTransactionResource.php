@@ -28,7 +28,7 @@ class StockTransactionResource extends JsonResource
             }),
 
             'sender_name'           => $this->sender_name,
-            'receiver_name'         => $this->receiver_name,
+            'receiver_name'         => auth()->user()->name,
             'phone'                 => $this->phone,
             'description'           => $this->description,
 

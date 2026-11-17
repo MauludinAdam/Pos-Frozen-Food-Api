@@ -47,10 +47,10 @@ class RequestUpdateUser extends FormRequest
     public function messages()
     {
         return [
-            'role_id.required'     => ':attribute harus diisi',
-            'name.required'     => ':attribute harus diisi',
-            'email.required'    => ':attribute harus diisi',
-            'email.email'       => ':attribute harus berupa email yang valid',
+            'role_id.required'                  => ':attribute harus diisi',
+            'name.required'                     => ':attribute harus diisi',
+            'email.required'                    => ':attribute harus diisi',
+            'email.email'                       => ':attribute harus berupa email yang valid',
 
             'current_password.required_with'    => ':attribute harus diisi ketika ingin menggati password',
             'password.min'                      => ':attribute minimal 8 karakter',

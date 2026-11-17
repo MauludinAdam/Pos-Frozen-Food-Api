@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class PaymentTransaction extends Model
 {
-    protected $fillabale = [
+    protected $fillable = [
         'transaction_id',
         'payment_method',
         'amount',

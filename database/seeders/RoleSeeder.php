@@ -14,17 +14,17 @@ class RoleSeeder extends Seeder
     public function run(): void
     {
         Role::firstOrCreate([
-            'name'          => 'admin',
+            'name'          => 'Super Admin',
             'guard_name'    => 'web',
         ]);
 
         Role::firstOrCreate([
-            'name'          => 'kasir',
+            'name'          => 'Kasir',
             'guard_name'    => 'web',
         ]);
 
         Role::firstOrCreate([
-            'name'          => 'admin gudang',
+            'name'          => 'Admin',
             'guard_name'    => 'web',
         ]);
     }

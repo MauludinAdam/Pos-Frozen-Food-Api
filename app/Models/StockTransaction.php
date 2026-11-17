@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\StockTransactionItem;
+use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 
@@ -15,6 +16,7 @@ class StockTransaction extends Model
         'date',
         'total_quantity',
         'user_id',
+        'transaction_id',
         'sender_name',
         'receiver_name',
         'phone',
@@ -34,6 +36,11 @@ class StockTransaction extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function transaction()
+    {
+        return $this->belongsTo(Transaction::class);
     }
 
     public function stockTransactionItems()

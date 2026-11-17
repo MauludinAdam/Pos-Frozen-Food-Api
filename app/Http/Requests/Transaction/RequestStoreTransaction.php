@@ -23,14 +23,16 @@ class RequestStoreTransaction extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id'           => 'required|exists:users,id',
-            'subtotal'          => 'required|string|max:100',
-            'discount_amount'   => 'nullable|string|max:100',
-            'total_amount'      => 'required|string|max:100',
-            'paid_amount'       => 'required|string|max:100',
-            'change_amount'     => 'required|string|max:100',
-            'status_payment'    => 'required|string|max:100',
-            'notes'             => 'nullable|string|max:500',
+            'subtotal'          => 'required|numeric|min:0',
+            'discount_amount'   => 'nullable|numeric|min:0',
+            'total_amount'      => 'required|numeric|min:0',
+            'paid_amount'       => 'required|numeric|min:0',
+            'change_amount'     => 'required|numeric|min:0',
+            'status_payment'    => 'required|in:paid',
+
+            'payment_method'    => 'required|in:cash,transfer,qris',
+
+            // 'notes'             => 'nullable|string|max:500',
 
             'items'             => 'required|array|min:1',
             'items.*.product_id'    => 'required|integer|exists:products,id',
@@ -41,14 +43,13 @@ class RequestStoreTransaction extends FormRequest
     public function attributes()
     {
         return [
-            'user_id'           => 'User',
             'subtotal'          => 'Subtotal',
             'discount_amount'   => 'Diskon',
             'total_amount'      => 'Jumlah Total',
             'paid_amount'       => 'Jumlah Pembayaran',
             'change_amount'     => 'Jumlah Kembalian',
             'status_payment'    => 'Status Pembayaran',
-            'notes'             => 'Catatan Transaction',
+            // 'notes'             => 'Catatan Transaction',
 
             'items'             => 'Daftar Product',
             'items.*.product_id'    => 'Product',
@@ -59,14 +60,13 @@ class RequestStoreTransaction extends FormRequest
     public function messages()
     {
         return [
-            'user_id'           => ':attribute harus diisi',
-            'subtotal'          => ':attribute harus diisi',
-            'discount_amount'   => ':attribute harus diisi',
-            'total_amount'      => ':attribute harus diisi',
-            'paid_amount'       => ':attribute harus diisi',
-            'change_amount'     => ':attribute harus diisi',
-            'status_payment'    => ':attribute harus diisi',
-            'notes'             => ':attribute boleh kosong'
+            'subtotal.rquired'          => ':attribute harus diisi',
+            'discount_amount.required'   => ':attribute harus diisi',
+            'total_amount.required'      => ':attribute harus diisi',
+            'paid_amount.required'       => ':attribute harus diisi',
+            'change_amount.required'     => ':attribute harus diisi',
+            'status_payment.required'    => ':attribute harus diisi',
+            'items.required'            => ':attribute harus diisi',
         ];
     }
 }

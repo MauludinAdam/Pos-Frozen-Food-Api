@@ -25,9 +25,12 @@ class Product extends Model
 
     public function scopeSearch($query, $search)
     {
-        return $query->where('name', 'LIKE', "%{$search}%")
-            ->orWhere('code', 'LIKE', "%{$search}%");
+        return $query->where(function ($q) use ($search) {
+            $q->where('name', 'LIKE', "%{$search}%")
+                ->orWhere('code', 'LIKE', "%{$search}%");
+        });
     }
+    
     public function category()
     {
         return $this->belongsTo(Category::class);

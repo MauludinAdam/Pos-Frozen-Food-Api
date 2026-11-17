@@ -30,7 +30,7 @@ class RequestStoreProduct extends FormRequest
             'price'         => 'required|string|max:100',
             'stock'         => 'required|string|max:100',
             'description'   => 'required|string|max:500',
-            'image'         => 'nullable|string|max:150',
+            'image'         => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
         ];
     }
 
@@ -51,14 +51,16 @@ class RequestStoreProduct extends FormRequest
     public function messages()
     {
         return [
-            'code'          => ':attribute harus diisi',
-            'category_id'   => ':attribute harus diisi',
-            'satuan_id'     => ':attribute harus diisi',
-            'name'          => ':attribute harus diisi',
-            'price'         => ':attribute harus diisi',
-            'stock'         => ':attribute harus diisi',
-            'description'   => ':attribute harus diisi',
-            'image'         => ':attribute boleh null',
+            'code'                   => ':attribute harus diisi',
+            'category_id.required'   => ':attribute harus diisi',
+            'satuan_id.required'     => ':attribute harus diisi',
+            'name.required'          => ':attribute harus diisi',
+            'price.required'         => ':attribute harus diisi',
+            'stock.required'         => ':attribute harus diisi',
+            'description'            => ':attribute harus diisi',
+            'image.required'         => ':attribute harus diisi',
+            'image.image'            => ':attribute harus gambar',
+            'image.mimes'            => ':attribute harus bertype jpg,png, jpeg',
         ];
     }
 }

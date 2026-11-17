@@ -5,10 +5,14 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Helpers\ResponseHelper;
 use App\Models\Transaction;
+use App\Models\DetailTransaction;
+use App\Models\Product;
+use App\Models\PaymentTransaction;
 use App\Http\Resources\PaginateResource;
 use App\Http\Resources\TransactionResource;
 use App\Http\Requests\Transaction\RequestStoreTransaction;
 use App\Http\Requests\Transaction\RequestUpdateTransaction;
+use Illuminate\Support\Facades\DB;
 
 class TransactionController extends Controller
 {
@@ -80,7 +84,7 @@ class TransactionController extends Controller
                 foreach($items as $item) {
                     $product = $products[$item['product_id']];
 
-                    $subtotal += $product->selling_price * $item['quantity'];
+                    $subtotal += $product->price * $item['quantity'];
                 }
 
                 $discount = (float) ($data['discount_amount'] ?? 0);
@@ -113,14 +117,21 @@ class TransactionController extends Controller
 
                 // Simpat Transaksi Utama
                 $transaction = Transaction::create([
-                    'user_id'           => $data['user_id'],
+                    'user_id'           => auth()->id(),
                     'subtotal'          => $subtotal,
                     'discount_amount'   => $discount,
                     'total_amount'      => $total,
                     'paid_amount'       => $paid,
                     'change_amount'     => $paid - $total,
                     'status_payment'    => 'paid',
-                    'notes'             => $data['notes'] ?? null,
+                ]);
+
+                // Simpan pembayaran
+                PaymentTransaction::create([
+                    'transaction_id'    => $transaction->id,
+                    'payment_method'    => $data['payment_method'],
+                    'amount'            => $paid,
+                    'status'            => 'paid',
                 ]);
 
                 // Simpan detail transaksi dan kurangi stok
@@ -132,8 +143,8 @@ class TransactionController extends Controller
                         'transaction_id'    => $transaction->id,
                         'product_id'        => $product->id,
                         'quantity'          => $quantity,
-                        'unit_price'        => $product->selling_price,
-                        'subtotal'          => $subtotal,
+                        'unit_price'        => $product->price,
+                        'subtotal'          => $product->price * $quantity,
                     ]);
                 }
 
@@ -144,7 +155,7 @@ class TransactionController extends Controller
                 return $transaction;
             });
 
-            return ResponseHelper::jsonResponse(true, 'Transaksi berhasil disimpan', new TransactionResource($transaction->load('detailTransactions')), 201);
+            return ResponseHelper::jsonResponse(true, 'Transaksi berhasil disimpan', new TransactionResource($transaction->load('detailTransactions.product','user','paymentTransaction')), 201);
         } catch (ValidationException $e) {
             throw $e;
         }catch (\Exception $e) {

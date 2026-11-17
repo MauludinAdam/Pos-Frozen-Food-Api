@@ -157,7 +157,7 @@ class PermissionSeeder extends Seeder
         }
 
         // Role Admin
-        $admin = Role::findByName('admin', 'web');
+        $admin = Role::findByName('super admin', 'web');
         $admin->syncPermissions(Permission::all());
 
         // Role Kasir
@@ -176,8 +176,8 @@ class PermissionSeeder extends Seeder
         ]);
 
         // Role Admin Gudang
-        $admin_gudang = Role::findByName('admin gudang', 'web');
-        $admin_gudang->syncPermissions([
+        $admin = Role::findByName('admin', 'web');
+        $admin->syncPermissions([
             'dashboard-menu',
             'stock-transaction-menu',
             'stock-transaction-list',

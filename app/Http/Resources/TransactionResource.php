@@ -23,7 +23,28 @@ class TransactionResource extends JsonResource
             'paid_amount'       => $this->paid_amount,
             'change_amount'     => $this->change_amount,
             'status_payment'    => $this->status_payment,
-            'notes'             => $this->notes,
+            
+            'payment'           => $this->whenLoaded('paymentTransactions',function() {
+                return [
+                    'payment_method' => $this->paymentTransaction->payment_method,
+                    'amount'         => $this->paymentTransaction->amount,
+                    'status'         => $this->paymentTransaction->status,
+                ];
+            }),
+
+            'details'           => $this->whenLoaded('detailTransactions',function() {
+                return $this->detailTransactions->map(function($detail) {
+                    return [
+                        'id'            => $detail->id,
+                        'product_name'  => $detail->product->name,
+                        'quantity'      => $detail->quantity,
+                        'unit_price'    => $detail->unit_price,
+                        'subtotal'      => $detail->subtotal,
+                    ];
+                });
+            }),
+
+            'created_at'    => $this->created_at,
         ];
     }
 }

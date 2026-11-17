@@ -17,13 +17,25 @@ class ProductResource extends JsonResource
         return [
             'id'            => $this->id,
             'code'          => $this->code,
-            'category'      => $this->whenLoaded('category'),
-            'satuan'        => $this->whenLoaded('satuan'),
+            'category_id'   => $this->category_id,
+            'satuan_id'     => $this->satuan_id,
+            'category'      => $this->whenLoaded('category', function() {
+                return [
+                    'id'    => $this->category->id,
+                    'name'  => $this->category->name,
+                ];
+            }),
+            'satuan'        => $this->whenLoaded('satuan', function() {
+                return [
+                    'id'    => $this->satuan->id,
+                    'name'  => $this->satuan->name,
+                ];
+            }),
             'name'          => $this->name,
             'price'         => $this->price,
             'stock'         => $this->stock,
             'description'   => $this->description,
-            'image'         => $this->image, 
+            'image'         => $this->image ? asset('storage/' . $this->image) : null, 
         ];
     }
 }

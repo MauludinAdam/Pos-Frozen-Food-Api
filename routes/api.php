@@ -17,50 +17,42 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 
-
-
-
-
 Route::middleware('auth:sanctum')->group(function () {
 
     Route::apiResource('/category', CategoryController::class)
-        ->middleware('role:admin');
+        ->middlewareFor(['index', 'show'],'role:Super Admin|Kasir')
+        ->middlewareFor(['store', 'update', 'destroy'], 'role:Super Admin');
 
     Route::apiResource('/satuan', SatuanController::class)
-        ->middleware('role:admin');
+        ->middlewareFor(['index', 'show'], 'role:Super Admin|Kasir')
+        ->middlewareFor(['store', 'update', 'destroy'],'role:Super Admin');
 
+    Route::get('/product/generate-code-product', [ProductController::class, 'generateProductCode' ]);
     Route::apiResource('/product', ProductController::class)
-        ->middleware('role:admin');
+        ->middlewareFor(['index', 'show'], 'role:Super Admin|Kasir|Admin')
+        ->middlewareFor(['store', 'update', 'destroy'], 'role:Super Admin');
 
     Route::apiResource('/transaction', TransactionController::class)
-        ->middleware('role:admin|kasir');
+        ->middleware('role:Super Admin|Kasir');
 
     Route::apiResource('/detail-transaction', DetailTransactionController::class)
-        ->middleware('role:admin|kasir');
+        ->middleware('role:Super Admin|Kasir');
 
-    Route::get('/stock-transaction', [StockTransactionController::class, 'index'])
-        ->middleware('role:admin|admin gudang');
-
-    Route::get('/stock-transaction/{id}', [StockTransactionController::class, 'show'])
-        ->middleware('role:admin|admin gudang');
-
-    Route::post('/stock-in', [StockInController::class, 'store'])
-        ->middleware('role:admin|admin gudang');
-        
-    Route::post('/stock-out', [StockOutController::class, 'store'])
-        ->middleware('role:admin|admin gudang');
+    Route::get('/stock-transaction/generate-number-transaction', [StockTransactionController::class, 'generateTransactionNumber']);
+    Route::apiResource('/stock-transaction', StockTransactionController::class)
+        ->middleware('role:Super Admin|Admin');
 
     Route::apiResource('/transaction-return', TransactionReturnController::class)
-        ->middleware('role:admin|admin gudang');
+        ->middleware('role:Super Admin|Admin');
     
     Route::apiResource('/supplier', SupplierController::class)
-        ->middleware('role:admin|admin gudang');
+        ->middleware('role:Super Admin|Admin');
 
     Route::apiResource('/purchase-order', PurchaseOrderController::class)
-        ->middleware('role:admin|admin gudang');
+        ->middleware('role:Super Admin|Admin');
 
     Route::apiResource('/goods-receipt', GoodReceiptController::class)
-        ->middleware('role:admin|admin gudang');
+        ->middleware('role:Super Admin|Admin');
 
     Route::get('/stock-opname/report/data', [StockInController::class, 'reportData']);
     Route::get('/stock-opname/report/pdf', [StockInController::class, 'report']);
@@ -69,4 +61,5 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::post('login', [AuthController::class, 'login'])->name('login');
 Route::middleware('auth:sanctum')->post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::middleware('auth:sanctum')->post('/me', [AuthController::class, 'me'])->name('me');
+Route::middleware('auth:sanctum')->get('/me', [AuthController::class, 'me'])->name('me');
 Route::middleware('auth:sanctum')->put('/me', [AuthController::class, 'update'])->name('me.update');
